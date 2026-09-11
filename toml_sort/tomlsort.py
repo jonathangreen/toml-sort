@@ -41,6 +41,10 @@ __all__ = ["TomlSort"]
 
 def clean_toml_text(input_toml: str) -> str:
     """Trim whitespace around the document, ending it with one newline."""
+    # A UTF-8 byte order mark is not part of the document and tomlkit
+    # rejects it as an empty key.
+    if input_toml.startswith("\ufeff"):
+        input_toml = input_toml[1:]
     return "\n" + input_toml.strip() + "\n"
 
 

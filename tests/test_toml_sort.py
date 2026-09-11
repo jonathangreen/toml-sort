@@ -49,6 +49,11 @@ def test_sort_toml_is_str() -> None:
             {},
         ),
         (
+            "utf8-bom",
+            "utf8-bom",
+            {},
+        ),
+        (
             "inline",
             "inline",
             {

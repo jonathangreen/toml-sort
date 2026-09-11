@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 
 - Blank lines inside multi-line strings are no longer collapsed; the sorter no longer rewrites blank lines in the text at all
+- A leading UTF-8 byte order mark no longer makes a document fail to parse
 
 ## 0.24.4
 
