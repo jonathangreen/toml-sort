@@ -1,0 +1,22 @@
+# Blank lines inside a multi-line string are part of its value and must be
+# kept; blank lines between items collapse to one.
+
+basic = """
+line1
+
+
+
+line2
+"""
+literal = '''
+a
+
+
+
+b'''
+# A comment may contain """ without opening a string.
+quotes = """quote \" # not a comment
+
+
+
+still string""""

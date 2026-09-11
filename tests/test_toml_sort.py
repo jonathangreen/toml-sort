@@ -44,6 +44,11 @@ def test_sort_toml_is_str() -> None:
             },
         ),
         (
+            "multiline-string",
+            "multiline-string",
+            {},
+        ),
+        (
             "inline",
             "inline",
             {

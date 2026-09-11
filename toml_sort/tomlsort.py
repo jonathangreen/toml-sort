@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import fnmatch
 import itertools
-import re
 from dataclasses import asdict, dataclass, field
 from typing import (
     Any,
@@ -41,9 +40,8 @@ __all__ = ["TomlSort"]
 
 
 def clean_toml_text(input_toml: str) -> str:
-    """Clean input toml, increasing the chance for beautiful output."""
-    cleaned = re.sub(r"[\r\n][\r\n]{2,}", "\n\n", input_toml)
-    return "\n" + cleaned.strip() + "\n"
+    """Trim whitespace around the document, ending it with one newline."""
+    return "\n" + input_toml.strip() + "\n"
 
 
 def convert_tomlkit_buggy_types(in_value: Any, parent: Any, key: str) -> Item:
@@ -563,7 +561,6 @@ class TomlSort:
             )
             to_doc.add(value)
 
-        to_doc.add(ws("\n"))
         return from_doc_body
 
     def toml_elements_sorted(
@@ -761,7 +758,15 @@ class TomlSort:
 
         items, footer_comment = self.body_to_tomlsortitems(original_body)
 
-        for item in self.sorted_children_table(None, items):
+        for index, item in enumerate(self.sorted_children_table(None, items)):
+            if (
+                index == 0
+                and sorted_document.body
+                and not (item.is_table or item.is_aot)
+            ):
+                # A blank line between the header comment and a first
+                # key/value; a table or array of tables brings its own.
+                sorted_document.add(ws("\n"))
             attach_comments(item, sorted_document)
             sorted_document.add(
                 item.keys.base,
@@ -780,4 +785,4 @@ class TomlSort:
         clean_toml = clean_toml_text(self.input_toml)
         toml_doc = tomlkit.parse(clean_toml)
         sorted_toml = self.toml_doc_sorted(toml_doc)
-        return clean_toml_text(tomlkit.dumps(sorted_toml)).strip() + "\n"
+        return tomlkit.dumps(sorted_toml).strip() + "\n"
