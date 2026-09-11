@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List
 
 import pytest
+import tomlkit
 
 from toml_sort import TomlSort
 from toml_sort.tomlsort import (
@@ -13,6 +14,7 @@ from toml_sort.tomlsort import (
     FormattingConfiguration,
     SortConfiguration,
     SortOverrideConfiguration,
+    clean_toml_text,
 )
 
 
@@ -188,3 +190,19 @@ def test_tomlsort(
 
     assert sort_output == toml_sorted_fixture
     assert TomlSort(sort_output, **args).sorted() == sort_output
+
+
+@pytest.mark.parametrize("control", ["\x0c", "\x0b", "\x1f"])
+def test_trailing_control_character_is_rejected(control: str) -> None:
+    """Control characters at the end of the document reach the parser."""
+    with pytest.raises(tomlkit.exceptions.TOMLKitError):
+        TomlSort(f"a = 1  # comment{control}\n").sorted()
+    with pytest.raises(tomlkit.exceptions.TOMLKitError):
+        TomlSort(control).sorted()
+
+
+def test_line_endings_trimmed_but_bare_cr_survives() -> None:
+    """CRLF endings are trimmed like LF ones; a bare CR is left in place."""
+    assert TomlSort("b = 1\r\n\r\na = 2\r\n").sorted() == "a = 2\nb = 1\n"
+    assert clean_toml_text("a = 1\r\n\r\n") == "\na = 1\n"
+    assert clean_toml_text("a = 1\r\n\r") == "\na = 1\r\n\r"

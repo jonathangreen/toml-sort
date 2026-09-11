@@ -39,13 +39,34 @@ from tomlkit.toml_document import TOMLDocument
 __all__ = ["TomlSort"]
 
 
+def strip_blank_edges(text: str) -> str:
+    """Remove leading and trailing blank lines and whitespace.
+
+    Only TOML whitespace and line endings are removed. str.strip() would
+    also remove control characters such as form feed, which are invalid in
+    TOML and must reach the parser so that the document is rejected.
+    """
+    text = text.lstrip(" \t\n")
+    while True:
+        if text.endswith("\r\n"):
+            text = text[:-2]
+        elif text.endswith((" ", "\t", "\n")):
+            text = text[:-1]
+        else:
+            return text
+
+
 def clean_toml_text(input_toml: str) -> str:
     """Trim whitespace around the document, ending it with one newline."""
     # A UTF-8 byte order mark is not part of the document and tomlkit
     # rejects it as an empty key.
     if input_toml.startswith("\ufeff"):
         input_toml = input_toml[1:]
-    return "\n" + input_toml.strip() + "\n"
+    text = strip_blank_edges(input_toml)
+    # A trailing bare carriage return is invalid; appending a newline would
+    # turn it into a valid CRLF line ending and hide it from the parser.
+    trailing = "" if text.endswith("\r") else "\n"
+    return "\n" + text + trailing
 
 
 def convert_tomlkit_buggy_types(in_value: Any, parent: Any, key: str) -> Item:
